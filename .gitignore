@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.env
+
+# Generated data files (rebuilt from source on each dev/build)
+app/src/data/*.json

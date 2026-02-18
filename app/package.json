@@ -1,0 +1,31 @@
+{
+  "name": "outreach-docs",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "npm run parse && vite",
+    "dev:cached": "vite",
+    "build": "npm run parse && vite build",
+    "preview": "vite preview",
+    "parse": "node ../build/parse-workflows.js && node ../build/extract-code-snippets.js"
+  },
+  "dependencies": {
+    "@floating-ui/react-dom": "^2.1.7",
+    "gray-matter": "^4.0.3",
+    "highlight.js": "^11.11.1",
+    "mermaid": "^11.4.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "react-router-dom": "^6.28.0",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.0"
+  }
+}

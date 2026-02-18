@@ -1,0 +1,8 @@
+{
+  "name": "docs-build",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "gray-matter": "^4.0.3"
+  }
+}
