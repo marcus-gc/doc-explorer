@@ -8,7 +8,7 @@
     "dev:cached": "vite",
     "build": "npm run parse && vite build",
     "preview": "vite preview",
-    "parse": "node ../build/parse-workflows.js && node ../build/extract-code-snippets.js"
+    "parse": "node ../build/fetch-docs.js && node ../build/extract-code-snippets.js"
   },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.7",

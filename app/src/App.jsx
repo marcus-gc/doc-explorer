@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import WorkflowIndex from './components/WorkflowIndex';
-import WorkflowPage from './components/WorkflowPage';
-import workflows from './data/workflows.json';
+import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import DocPage from './components/DocPage';
+import pagesData from './data/pages.json';
+
+const { pages, navTree } = pagesData;
 
 const EDITORS = [
   { id: 'vscode', label: 'VS Code' },
@@ -91,14 +92,20 @@ function EditorSelector() {
   );
 }
 
+// Derive header title from first root nav node
+const headerTitle = navTree.length > 0 ? navTree[0].title : 'Documentation';
+
 export default function App() {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+
   return (
     <div className="app-layout">
       <header className="app-header">
         <Link to="/">
-          <h1 className="app-header-title">Outreach System</h1>
+          <h1 className="app-header-title">{headerTitle}</h1>
           <p className="app-header-subtitle">
-            Architecture documentation — organized by workflow
+            Architecture documentation
           </p>
         </Link>
         <EditorSelector />
@@ -107,12 +114,8 @@ export default function App() {
       <main className="app-main">
         <Routes>
           <Route
-            path="/"
-            element={<WorkflowIndex workflows={workflows} />}
-          />
-          <Route
-            path="/workflows/:slug"
-            element={<WorkflowPage workflows={workflows} />}
+            path="*"
+            element={<DocPage pages={pages} navTree={navTree} />}
           />
         </Routes>
       </main>
