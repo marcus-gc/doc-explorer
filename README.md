@@ -1,130 +1,209 @@
-# Doc Viewer
+# Illumina
 
-A repo-agnostic documentation viewer that renders interactive Mermaid diagrams with inline source code popovers. Point it at any repo with a `docs/` directory and it discovers, fetches, and renders all markdown content using file-system routing.
+A static documentation site generator that renders interactive Mermaid diagrams with source code popovers. Write markdown with annotated flowcharts and sequence diagrams, and Illumina builds a browsable site where clicking a diagram node shows the actual source code it references.
 
-## How it works
+## Quick start
 
-The viewer has **no content of its own**. Markdown files live in the target repo (e.g. `givecampus/givecampus`) under a configurable `DOCS_PATH` (default: `docs/`). The build step discovers those files, parses them, and generates JSON that the React frontend renders.
+From any repository that has a `docs/` directory with markdown files:
 
-### File-system routing
-
-Directory structure determines URL routes:
-
-```
-docs/
-  outreach/
-    index.md                              → /outreach
-    workflows/
-      index.md                            → /outreach/workflows
-      creating_an_outreach.md             → /outreach/workflows/creating_an_outreach
+```bash
+npx github:marcus-gc/outreach-docs create
 ```
 
-- `index.md` files are section pages that show child page cards
-- Non-index files are leaf pages with full content
+This generates a static site in `_site/` ready to be deployed.
 
-### Markdown format
+## CLI usage
 
-Each markdown file uses YAML frontmatter and can contain Mermaid code fences with click directives that link diagram nodes to source code:
+```
+illumina create [options]
+```
+
+### Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--docs-path <path>` | `docs` | Path to the docs directory in your repo |
+| `--output <dir>` | `_site` | Output directory for the built site |
+| `--base <path>` | `/` | Base path for asset URLs (for subdirectory hosting) |
+
+### Examples
+
+Build with defaults:
+
+```bash
+npx github:marcus-gc/outreach-docs create
+```
+
+Custom docs directory and output:
+
+```bash
+npx github:marcus-gc/outreach-docs create --docs-path documentation --output dist
+```
+
+For GitHub Pages hosted at `https://<org>.github.io/<repo>/`:
+
+```bash
+npx github:marcus-gc/outreach-docs create --base /my-repo/
+```
+
+## Adding to your repository
+
+### 1. Write documentation
+
+Create markdown files in your docs directory using YAML frontmatter and Mermaid code fences with click directives that link diagram nodes to source code:
 
 ```markdown
 ---
 title: Creating an Outreach
-description: How outreach creation works end-to-end
+description: How the outreach creation flow works
 tags: [outreach, controllers]
 ---
 
 ## Overview
+
 Prose explaining the workflow...
+
+## Flowchart
+
+` ``mermaid
+flowchart TD
+  A[User submits form] --> B[Controller processes request]
+  B --> C[Service creates record]
+  click A href "#" "app/controllers/outreaches_controller.rb:15-30"
+  click B href "#" "app/controllers/outreaches_controller.rb:32-58"
+  click C href "#" "app/services/outreach_creator.rb:10-45"
+` ``
+```
+
+The `click` directives link diagram nodes to source files. Format: `click <NodeID> href "#" "<filepath>:<startLine>-<endLine>"`. The line range is optional — omitting it shows the full file.
+
+### 2. Directory structure
+
+The directory structure determines URL routes:
+
+```
+docs/
+  index.md          → /
+  outreach/
+    index.md        → /outreach
+    creation.md     → /outreach/creation
+    workflows/
+      approval.md   → /outreach/workflows/approval
+```
+
+- `index.md` files become section pages that show cards linking to child pages
+- Non-index files are leaf pages with full content
+
+### 3. Add a build script
+
+Add a convenience script to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "docs:build": "npx github:marcus-gc/outreach-docs create --base /my-repo/"
+  }
+}
+```
+
+### 4. Deploy with GitHub Actions
+
+Create `.github/workflows/docs.yml`:
+
+```yaml
+name: Deploy docs
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**']
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npx github:marcus-gc/outreach-docs create --base /${{ github.event.repository.name }}/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+```
+
+## Diagram features
+
+### Flowcharts
 
 ```mermaid
 flowchart TD
   A[Step 1] --> B[Step 2]
-  click A href "#" "app/controllers/foo.rb:15-30"
-  click B href "#" "app/services/bar.rb"
-`` `
+  click A href "#" "app/models/user.rb:10-25"
 ```
 
-## Setup
+### Sequence diagrams
 
-### 1. Install dependencies
+Participant aliases map display names to clickable nodes:
+
+```mermaid
+sequenceDiagram
+  participant C as Controller
+  participant S as Service
+  C->>S: call method
+  click C href "#" "app/controllers/foo_controller.rb:5-20"
+  click S href "#" "app/services/foo_service.rb:12-30"
+```
+
+### Line ranges
+
+- `app/models/user.rb:10-25` — shows lines 10-25 with 2 lines of surrounding context
+- `app/models/user.rb` — shows the full file (truncated at 100 lines in the UI)
+
+## Local development
+
+For developing Illumina itself:
 
 ```bash
+# Install build + app dependencies
 cd build && npm install && cd ../app && npm install && cd ..
-```
 
-### 2. Configure source repo access
-
-Create a `.env` file in the project root:
-
-```bash
+# Configure source repo access
 cp .env.example .env
+# Edit .env — set LOCAL_REPO_ROOT or GITHUB_TOKEN
+
+# Run the dev server (port 3100)
+cd app && npm run dev
 ```
 
-**Option A — Local clone (recommended)**
-
-```
-LOCAL_REPO_ROOT=/Users/you/Workspace/givecampus
-```
-
-**Option B — GitHub API**
-
-```
-GITHUB_TOKEN=ghp_xxxxxxxxxxxx
-```
-
-### 3. Run the dev server
+To skip re-fetching and use cached JSON:
 
 ```bash
-cd app
-npm run dev
+cd app && npm run dev:cached
 ```
 
-This discovers docs, fetches source files, and starts Vite on port 3100.
-
-To skip re-fetching (uses cached JSON):
-
-```bash
-npm run dev:cached
-```
-
-## Project structure
-
-```
-build/
-  fetch-docs.js           Discovers + fetches + parses docs → pages.json
-  extract-code-snippets.js  Fetches source files → source-files.json
-  lib/env.js              Shared env loading, fetch helpers
-  package.json            Build dependency: gray-matter
-app/
-  src/
-    App.jsx               Router + settings dropdown
-    components/
-      DocPage.jsx         Unified page renderer (index + leaf pages)
-      Breadcrumb.jsx      Breadcrumb navigation
-      MermaidDiagram.jsx  Mermaid SVG with click handlers
-      NodePopover.jsx     Source code popover
-      CodeBlock.jsx       Syntax-highlighted code
-      MarkdownRenderer.jsx  Prose sections
-    data/                 Generated JSON (gitignored)
-    styles/theme.css      Design system
-  package.json            React, Vite, Mermaid, highlight.js
-```
-
-## Pointing at a different repo
+### Pointing at a different repo
 
 Set these in `.env`:
 
 ```
-GITHUB_OWNER=your-org
-GITHUB_REPO=your-repo
-GITHUB_REF=main
+LOCAL_REPO_ROOT=/path/to/your-repo
 DOCS_PATH=docs
 ```
 
-Or for local development:
+Or use the GitHub API:
 
 ```
-LOCAL_REPO_ROOT=/path/to/your-repo
+GITHUB_TOKEN=ghp_xxxxxxxxxxxx
+GITHUB_OWNER=your-org
+GITHUB_REPO=your-repo
+GITHUB_REF=main
 DOCS_PATH=docs
 ```
 
