@@ -1,4 +1,4 @@
-# Illumina
+# Doc Explorer
 
 A static documentation site generator that renders interactive Mermaid diagrams with source code popovers. Write markdown with annotated flowcharts and sequence diagrams, and Illumina builds a browsable site where clicking a diagram node shows the actual source code it references.
 
@@ -15,7 +15,7 @@ This generates a static site in `_site/` ready to be deployed.
 ## CLI usage
 
 ```
-illumina create [options]
+doc-explorer create [options]
 ```
 
 ### Options
@@ -31,19 +31,19 @@ illumina create [options]
 Build with defaults:
 
 ```bash
-npx github:marcus-gc/outreach-docs create
+npx github:givecampus/doc-explorer create
 ```
 
 Custom docs directory and output:
 
 ```bash
-npx github:marcus-gc/outreach-docs create --docs-path documentation --output dist
+npx github:givecampus/doc-explorer create --docs-path documentation --output dist
 ```
 
 For GitHub Pages hosted at `https://<org>.github.io/<repo>/`:
 
 ```bash
-npx github:marcus-gc/outreach-docs create --base /my-repo/
+npx github:givecampus/doc-explorer create --base /my-repo/
 ```
 
 ## Adding to your repository
