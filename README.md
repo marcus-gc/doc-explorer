@@ -7,7 +7,7 @@ A static documentation site generator that renders interactive Mermaid diagrams 
 From any repository that has a `docs/` directory with markdown files:
 
 ```bash
-npx github:marcus-gc/outreach-docs create
+npx github:givecampus/doc-explorer create
 ```
 
 This generates a static site in `_site/` ready to be deployed.
