@@ -101,7 +101,7 @@ Add a convenience script to your `package.json`:
 ```json
 {
   "scripts": {
-    "docs:build": "npx github:marcus-gc/outreach-docs create --base /my-repo/"
+    "docs:build": "npx github:givecampus/doc-explorer create --base /my-repo/"
   }
 }
 ```
